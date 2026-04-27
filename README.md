@@ -1,5 +1,7 @@
 # SAT Practice Tool
 
+[Live site →](https://sat-practice-tool.vercel.app) · [Download for Windows →](https://github.com/44fey/sat-practice-tool/releases/latest)
+
 I was supposed to be studying for the SAT. I procrastinated and made this instead.
 
 The College Board has every disclosed practice question on their site —
@@ -12,14 +14,20 @@ So I gave up studying and built my own version.
 
 ## Get it
 
-Download the [latest installer](https://github.com/44fey/sat-practice-tool/releases/latest)
+**Use it in your browser, no install:** [sat-practice-tool.vercel.app](https://sat-practice-tool.vercel.app)
+— same exact app, hosted as a static site. Works on phones too. Progress
+saves to your browser's localStorage so it persists between sessions on
+the same device.
+
+**Or download the desktop app for Windows:** grab the
+[latest installer](https://github.com/44fey/sat-practice-tool/releases/latest)
 (`SAT-Practice-Tool-Setup-x.y.z.exe`). Run it. There's also a portable
 single-file version for USB sticks — same thing, but the cold start
 takes ~30s every launch because it has to extract itself first.
 
-Both binaries are unsigned, so the first time you run one, Windows will
-pop up a SmartScreen warning ("Windows protected your PC"). Click
-**More info → Run anyway**.
+Both Windows binaries are unsigned, so the first time you run one,
+Windows will pop up a SmartScreen warning ("Windows protected your PC").
+Click **More info → Run anyway**.
 
 ## What's in it
 

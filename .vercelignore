@@ -1,0 +1,17 @@
+node_modules
+dist
+smoke-out
+verify-out
+build
+tests
+.git
+.github
+*.log
+electron-main.cjs
+run-electron.cjs
+run-electron-builder.cjs
+scrape.mjs
+serve.mjs
+smoke.mjs
+verify.mjs
+screenshot-one.mjs
