@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SAT Math · Local Question Bank</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    // MathML-only. Do NOT enable TeX input — legacy stems contain "$5", "$12"
+    // etc. which MathJax would otherwise treat as $...$ math delimiters.
+    window.MathJax = {
+      loader: { load: ['input/mml', 'output/chtml'] },
+      chtml: { displayAlign: 'left' },
+      startup: { typeset: false },
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-chtml.js"></script>
+  <!-- Desmos Graphing Calculator (loaded from Desmos's own CDN, free for
+       educational embed). Loaded lazily the first time the user opens the panel. -->
+</head>
+<body>
+  <div class="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h1 id="section-title">SAT Math</h1>
+        <button id="toggle-sidebar" type="button" title="Hide navigation (press \)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="16" rx="2"/>
+            <line x1="9" y1="4" x2="9" y2="20"/>
+            <polyline points="14,9 11,12 14,15"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="section-switch" id="section-switch">
+        <button type="button" data-section="math" class="active">Math</button>
+        <button type="button" data-section="reading">R&amp;W</button>
+      </div>
+
+      <div id="active-playlist-banner" class="active-playlist-banner" hidden>
+        <div class="apb-row">
+          <span class="apb-icon">▶</span>
+          <span class="apb-name" id="active-playlist-name"></span>
+          <button id="exit-playlist" type="button" title="Exit playlist">×</button>
+        </div>
+        <div class="apb-sub"><span id="active-playlist-count">0</span> questions</div>
+      </div>
+
+      <div class="progress-summary" id="progress-summary">
+        <span class="ps-correct"><span id="ps-correct-n">0</span> ✓</span>
+        <span class="ps-wrong"><span id="ps-wrong-n">0</span> ✗</span>
+        <span class="ps-todo"><span id="ps-todo-n">0</span> left</span>
+        <span class="ps-marked" id="ps-marked-pill" title="Show only marked-for-review questions"><span id="ps-marked-n">0</span> ★</span>
+      </div>
+
+      <div class="sidebar-filters">
+        <div class="filter-group">
+          <input id="search-id" type="search" placeholder="Search ID…" autocomplete="off" />
+        </div>
+
+        <div class="filter-group">
+          <label>Domains &amp; skills</label>
+          <div id="filter-categories" class="categories"></div>
+        </div>
+
+        <div class="filter-group">
+          <label>Difficulty</label>
+          <div id="filter-difficulty"></div>
+        </div>
+
+        <div class="filter-group">
+          <label>Status</label>
+          <div id="filter-status" class="pill-group">
+            <span class="pill" data-status="unattempted">Unattempted</span>
+            <span class="pill" data-status="correct">Correct</span>
+            <span class="pill" data-status="incorrect">Wrong</span>
+            <span class="pill pill-marked" id="filter-marked" title="Show only marked-for-review">★ Marked</span>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button id="random-btn" type="button">Random</button>
+          <button id="clear-btn" type="button">Clear</button>
+          <button id="reset-progress-btn" type="button" class="danger" title="Erase saved answers">Reset progress</button>
+        </div>
+      </div>
+
+      <div class="filter-group playlists-group">
+        <div class="playlists-header">
+          <label>Playlists</label>
+          <button id="save-filter-as-playlist" type="button" title="Save current filter as a playlist">+ Filter</button>
+          <button id="toggle-select-mode" type="button" title="Pick individual questions">+ Pick</button>
+        </div>
+        <div id="playlists-list" class="playlists-list"></div>
+      </div>
+
+      <div id="select-toolbar" class="select-toolbar" hidden>
+        <span class="st-info"><span id="select-count">0</span> picked</span>
+        <button id="select-all-visible" type="button">All shown</button>
+        <button id="save-selection" type="button" class="primary" disabled>Save</button>
+        <button id="cancel-select" type="button">Cancel</button>
+      </div>
+
+      <div class="sidebar-list">
+        <div class="result-info">
+          <span id="filtered-count">0</span> of <span id="all-count">0</span> in playlist
+        </div>
+        <ol id="question-list"></ol>
+      </div>
+    </aside>
+
+    <button id="show-sidebar" type="button" title="Show navigation (press \\)" aria-label="Show navigation" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="16" rx="2"/>
+        <line x1="9" y1="4" x2="9" y2="20"/>
+      </svg>
+    </button>
+
+    <main id="viewer">
+      <div class="bb-frame">
+        <header class="bb-header">
+          <div class="bb-header-left">
+            <div class="bb-section">SAT Math · Question Bank</div>
+            <div class="bb-sub">Disclosed (non-active) practice items</div>
+          </div>
+          <div class="bb-header-right">
+            <div class="bb-timer" id="bb-timer" title="Time on this question">
+              <span class="timer-icon">⏱</span>
+              <span id="timer-display">0:00</span>
+            </div>
+            <button class="bb-tool" id="toggle-desmos" type="button" title="Toggle Desmos graphing calculator">
+              <span aria-hidden="true">🖩</span>
+              <span class="tool-label">Calculator</span>
+            </button>
+            <div class="bb-stat">
+              <strong id="bb-position">—</strong>
+              <span>position</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="bb-divider"></div>
+
+        <div id="empty-state" class="bb-empty">
+          <h2>Pick a question from the list</h2>
+          <p>Or hit <em>Random</em> on the left.</p>
+        </div>
+
+        <article id="question-content" class="bb-card" hidden>
+          <div class="bb-card-header">
+            <div class="bb-num" id="bb-num">·</div>
+            <button class="bb-mark" id="bb-mark" type="button" title="Mark for review">
+              <svg viewBox="0 0 16 20" width="14" height="18" aria-hidden="true">
+                <path d="M2 1h12v18l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+              </svg>
+              <span>Mark for Review</span>
+            </button>
+            <div class="bb-meta-badges">
+              <span class="badge" id="q-id"></span>
+              <span class="badge" id="q-domain"></span>
+              <span class="badge" id="q-skill"></span>
+              <span class="badge" id="q-difficulty"></span>
+            </div>
+          </div>
+
+          <div id="q-stem" class="prose bb-stem"></div>
+
+          <div id="q-choices" class="bb-choices"></div>
+
+          <div id="q-spr-input" class="bb-spr" hidden>
+            <label>Your answer</label>
+            <input type="text" id="spr-attempt" autocomplete="off" placeholder="e.g. 17.5 or 3/17" />
+            <span id="spr-result"></span>
+          </div>
+
+          <div class="bb-submit-row">
+            <button id="submit-btn" type="button" class="bb-submit" disabled>Submit</button>
+            <span id="submit-status" class="submit-status"></span>
+          </div>
+
+          <div class="bb-actions">
+            <button id="reveal-answer" type="button" disabled>Show answer</button>
+            <button id="reveal-rationale" type="button" disabled>Show explanation</button>
+            <button id="retry-btn" type="button" hidden>Try again</button>
+          </div>
+          <div id="q-answer" class="answer-box prose" hidden></div>
+          <div id="q-rationale" class="rationale-box prose" hidden></div>
+        </article>
+
+        <div class="bb-divider"></div>
+
+        <footer class="bb-footer">
+          <button id="prev-btn" class="bb-nav" type="button" disabled>Back</button>
+          <div id="position-pill" class="bb-position-pill">No question selected</div>
+          <button id="next-btn" class="bb-nav primary" type="button" disabled>Next</button>
+        </footer>
+      </div>
+    </main>
+
+    <aside id="desmos-panel" hidden>
+      <div id="desmos-resize" class="desmos-resize" title="Drag to resize"></div>
+      <div class="desmos-header">
+        <span class="desmos-title">Desmos · Graphing Calculator</span>
+        <button id="close-desmos" type="button" title="Close calculator">×</button>
+      </div>
+      <div id="desmos-calc" class="desmos-calc"></div>
+      <div class="desmos-footer">powered by desmos · runs offline (local bundle)</div>
+    </aside>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

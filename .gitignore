@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Test/verification artifacts (regenerable)
+smoke-out/
+verify-out/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Misc
+*.log

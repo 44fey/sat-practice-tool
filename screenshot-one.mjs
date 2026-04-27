@@ -1,0 +1,14 @@
+import { chromium } from 'playwright';
+const qid = process.argv[2];
+const out = process.argv[3] || `./smoke-out/dbg-${qid}.png`;
+const browser = await chromium.launch();
+const page = await browser.newContext({ viewport: { width: 1400, height: 900 } }).then(c => c.newPage());
+await page.goto('http://localhost:5173/');
+await page.waitForFunction(() => /\d/.test(document.querySelector('#all-count')?.textContent || ''));
+await page.evaluate((q) => window.__test_selectQuestion(q), qid);
+await page.waitForTimeout(1500);
+await page.evaluate(() => { document.querySelector('#q-rationale').hidden = false; document.querySelector('#q-answer').hidden = false; });
+await page.waitForTimeout(800);
+await page.screenshot({ path: out, fullPage: true });
+await browser.close();
+console.log('saved', out);

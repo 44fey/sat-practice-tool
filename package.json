@@ -1,0 +1,14 @@
+{
+  "name": "sat-maths-tool",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "node scrape.mjs",
+    "serve": "node serve.mjs",
+    "smoke": "node smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
+  }
+}
