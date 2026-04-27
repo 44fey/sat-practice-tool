@@ -662,6 +662,25 @@ input[type="search"]:focus, input[type="text"]:focus {
 .diff-M { background: #fef3c7; color: #92400e; }
 .diff-H { background: #fee2e2; color: #991b1b; }
 
+.sidebar-credit {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  text-align: center;
+  font-size: 10px;
+  color: #9ca3af;
+  border-top: 1px solid #f3f4f6;
+  background: #fafbfc;
+  letter-spacing: 0.02em;
+}
+.sidebar-credit a {
+  color: #6b7280;
+  text-decoration: none;
+}
+.sidebar-credit a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
 .status-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
