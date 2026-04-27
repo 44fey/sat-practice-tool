@@ -52,7 +52,16 @@ whichever endpoint the original site uses for that item:
 
 Each response is saved as a JSON file under `data/{section}/questions/<id>.json` together with the index metadata, so the viewer renders it from disk afterward.
 
-## Setup
+## Get it
+
+**Just want to use it?** Grab the portable Windows build from the
+[latest release](https://github.com/44fey/sat-practice-tool/releases/latest)
+— a single 97 MB `.exe` you can run from anywhere (Desktop, USB stick,
+network share). No install, no Node.js, no setup. Double-click and the app
+opens in its own window with all 1,422 questions and the offline Desmos
+calculator bundled inside.
+
+## Setup (from source)
 
 You need Node.js 18+.
 
@@ -86,8 +95,23 @@ serve.mjs           tiny static server (port 5173)
 verify.mjs          loads every question in headless Chromium and audits rendering
 smoke.mjs           quick smoke test of the viewer
 tests/              one-off Playwright scripts used during development
+electron-main.cjs   Electron main process (used for the portable .exe build)
+run-electron.cjs    dev launcher for `npm run electron`
+run-electron-builder.cjs   wrapper for `npm run build:exe`
 CREDITS.md          attribution for College Board content + Desmos calculator
 ```
+
+## Building the portable Windows .exe yourself
+
+```bash
+npm install
+npm run electron     # dev mode — opens the app in its own window
+npm run build:exe    # produces dist/SAT-Practice-Tool.exe (~97 MB)
+```
+
+Bundles the viewer, all 1,422 questions, and the offline Desmos calculator
+into a single portable executable. No code-signing — the build skips
+winCodeSign so you don't need Windows Developer Mode or admin rights.
 
 ## Verification
 

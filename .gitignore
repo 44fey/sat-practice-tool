@@ -5,6 +5,9 @@ node_modules/
 smoke-out/
 verify-out/
 
+# electron-builder output (the binary is shipped via GitHub Releases, not git)
+dist/
+
 # Editor / OS
 .DS_Store
 Thumbs.db
