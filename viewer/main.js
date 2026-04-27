@@ -150,6 +150,7 @@ async function loadIndex() {
   $('#section-title').textContent = SECTIONS[state.section].title;
   buildFilters();
   renderPlaylists();
+  updatePlaylistsBadge();
   applyFilters();
   refreshProgressUI();
 }
@@ -333,6 +334,18 @@ function applyFilters() {
     return true;
   });
   $('#filtered-count').textContent = state.filtered.length;
+  // Show how many filters are currently active in the section header
+  const activeCount = (f.domains.size > 0 ? 1 : 0)
+    + (f.skills.size > 0 ? 1 : 0)
+    + (f.difficulties.size > 0 ? 1 : 0)
+    + (f.statuses.size > 0 ? 1 : 0)
+    + (f.markedOnly ? 1 : 0)
+    + (f.search ? 1 : 0);
+  const fc = $('#active-filter-count');
+  if (fc) {
+    fc.textContent = activeCount;
+    fc.hidden = activeCount === 0;
+  }
   renderList();
   // Recompute selected index
   state.selectedIdx = state.filtered.findIndex((q) => q.questionId === state.selected);
@@ -768,8 +781,13 @@ function renderPlaylists() {
   const root = $('#playlists-list');
   root.innerHTML = '';
   const playlists = playlistsForCurrentSection();
+  const countEl = $('#playlists-count');
+  if (countEl) {
+    countEl.textContent = playlists.length;
+    countEl.hidden = playlists.length === 0;
+  }
   if (!playlists.length) {
-    root.innerHTML = '<div class="playlists-empty">No playlists yet. Filter, then "+ Filter".</div>';
+    root.innerHTML = '<div class="playlists-empty">No playlists yet. Build a filter, then click "+ Filter".</div>';
     return;
   }
   for (const pl of playlists) {
@@ -826,8 +844,25 @@ function activatePlaylist(id) {
   $('#ps-marked-pill').classList.remove('active');
   applyFilters();
   renderPlaylists();
-  // Float the banner into view at the top of the sidebar.
-  banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  updatePlaylistsBadge();
+  // Close the modal so the user lands on the question list.
+  closePlaylistsModal();
+}
+
+function openPlaylistsModal() {
+  $('#playlists-modal').hidden = false;
+  $('#filter-hint-count').textContent = `${state.filtered.length} in current filter`;
+  renderPlaylists();
+}
+function closePlaylistsModal() {
+  $('#playlists-modal').hidden = true;
+}
+function updatePlaylistsBadge() {
+  const count = playlistsForCurrentSection().length;
+  const badge = $('#playlists-badge');
+  badge.textContent = count;
+  badge.hidden = count === 0;
+  $('#open-playlists').classList.toggle('has-active', !!state.activePlaylistId);
 }
 
 function exitPlaylist() {
@@ -835,6 +870,7 @@ function exitPlaylist() {
   $('#active-playlist-banner').hidden = true;
   applyFilters();
   renderPlaylists();
+  updatePlaylistsBadge();
 }
 
 function saveCurrentFilterAsPlaylist() {
@@ -1009,11 +1045,35 @@ function bind() {
   bindDesmosResize();
 
   $('#save-filter-as-playlist').addEventListener('click', () => saveCurrentFilterAsPlaylist());
-  $('#toggle-select-mode').addEventListener('click', () => toggleSelectMode(!state.selectMode));
+  $('#toggle-select-mode').addEventListener('click', () => {
+    closePlaylistsModal();
+    toggleSelectMode(!state.selectMode);
+  });
   $('#select-all-visible').addEventListener('click', () => selectAllVisible());
   $('#save-selection').addEventListener('click', () => saveSelectionAsPlaylist());
   $('#cancel-select').addEventListener('click', () => toggleSelectMode(false));
   $('#exit-playlist').addEventListener('click', () => exitPlaylist());
+
+  // Modal: open / close
+  $('#open-playlists').addEventListener('click', () => openPlaylistsModal());
+  $$('#playlists-modal [data-close]').forEach((el) => {
+    el.addEventListener('click', () => closePlaylistsModal());
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#playlists-modal').hidden) closePlaylistsModal();
+  });
+
+  // Persist collapsed/expanded state for the filters section
+  const filtersDet = document.getElementById('filters-section');
+  if (filtersDet) {
+    const key = 'sat-section-open-filters-section';
+    const saved = localStorage.getItem(key);
+    if (saved === '0') filtersDet.open = false;
+    if (saved === '1') filtersDet.open = true;
+    filtersDet.addEventListener('toggle', () => {
+      localStorage.setItem(key, filtersDet.open ? '1' : '0');
+    });
+  }
 
   // Section toggle (Math / R&W)
   $$('#section-switch button').forEach((b) => {
