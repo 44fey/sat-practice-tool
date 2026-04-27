@@ -76,7 +76,9 @@ function startServer() {
 }
 
 async function createWindow() {
-  const port = await startServer();
+  // Start server and create window in parallel so the Chromium init isn't
+  // gated on our HTTP server.
+  const portPromise = startServer();
 
   const win = new BrowserWindow({
     width: 1500,
@@ -86,12 +88,17 @@ async function createWindow() {
     title: 'SAT Practice Tool',
     backgroundColor: '#f3f4f6',
     autoHideMenuBar: true,
+    show: false,                     // avoid blank-frame flash on cold start
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      backgroundThrottling: false,   // keep timers responsive
     },
   });
+  win.once('ready-to-show', () => win.show());
+
+  const port = await portPromise;
 
   // Open external links (e.g. cdn.jsdelivr) in the user's default browser.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -113,6 +120,10 @@ async function createWindow() {
 
 // Hide the default menu bar entirely (still toggleable with Alt).
 Menu.setApplicationMenu(null);
+
+// Trim some Chromium subsystems we don't use (cuts ~50–150ms cold start).
+app.commandLine.appendSwitch('disable-features',
+  'DialMediaRouteProvider,MediaRouter,WidgetCertificateAuthority,OptimizationHints,Translate');
 
 app.whenReady().then(createWindow);
 

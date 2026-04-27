@@ -1,6 +1,6 @@
 {
   "name": "sat-practice-tool",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "main": "electron-main.cjs",
   "scripts": {
@@ -8,12 +8,14 @@
     "serve": "node serve.mjs",
     "smoke": "node smoke.mjs",
     "electron": "node run-electron.cjs",
-    "build:exe": "node run-electron-builder.cjs --win portable"
+    "icon": "node build/make-icon.cjs",
+    "build:exe": "node run-electron-builder.cjs --win"
   },
   "devDependencies": {
     "electron": "^41.3.0",
     "electron-builder": "^26.8.1",
-    "playwright": "^1.59.1"
+    "playwright": "^1.59.1",
+    "png-to-ico": "^3.0.1"
   },
   "build": {
     "appId": "com.fnaamani7.sat-practice-tool",
@@ -38,16 +40,29 @@
       }
     ],
     "win": {
-      "target": "portable",
-      "artifactName": "SAT-Practice-Tool.exe",
+      "icon": "build/icon.ico",
+      "target": [
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
       "signAndEditExecutable": false,
       "signtoolOptions": null
     },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SAT Practice Tool",
+      "artifactName": "SAT-Practice-Tool-Setup-${version}.exe"
+    },
     "portable": {
-      "artifactName": "SAT-Practice-Tool.exe"
+      "artifactName": "SAT-Practice-Tool-Portable-${version}.exe"
     },
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     }
   }
 }

@@ -54,12 +54,25 @@ Each response is saved as a JSON file under `data/{section}/questions/<id>.json`
 
 ## Get it
 
-**Just want to use it?** Grab the portable Windows build from the
-[latest release](https://github.com/44fey/sat-practice-tool/releases/latest)
-— a single 97 MB `.exe` you can run from anywhere (Desktop, USB stick,
-network share). No install, no Node.js, no setup. Double-click and the app
-opens in its own window with all 1,422 questions and the offline Desmos
-calculator bundled inside.
+**Just want to use it?** Grab a Windows build from the
+[latest release](https://github.com/44fey/sat-practice-tool/releases/latest):
+
+- **Recommended — `SAT-Practice-Tool-Setup-x.y.z.exe`** (NSIS installer,
+  ~107 MB). Installs once into your user profile, then launches in **~2
+  seconds**. Adds a Start menu / Desktop shortcut.
+- **`SAT-Practice-Tool-Portable-x.y.z.exe`** (portable, ~107 MB). Single
+  file you can run from a USB stick. Tradeoff: it has to extract its
+  contents to `%TEMP%` on every launch, so cold start takes **~30 seconds**.
+
+Both bundle all 1,422 disclosed SAT questions, the viewer, and the offline
+Desmos calculator. No Node.js install needed.
+
+> **About the SmartScreen warning** — the binaries are unsigned, so Windows
+> will pop up "Windows protected your PC" the first time. Click **More info →
+> Run anyway**. Code-signing certificates start at ~$200/yr; building
+> SmartScreen reputation organically requires a fair number of users to run
+> the binary without flagging it. Until then, the manual override is the
+> route.
 
 ## Setup (from source)
 
