@@ -1,6 +1,6 @@
 {
   "name": "sat-practice-tool",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "main": "electron-main.cjs",
   "scripts": {
@@ -49,12 +49,16 @@
       "signtoolOptions": null
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": false,
+      "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "SAT Practice Tool",
+      "menuCategory": false,
       "artifactName": "SAT-Practice-Tool-Setup-${version}.exe"
     },
     "portable": {
