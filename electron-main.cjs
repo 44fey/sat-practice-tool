@@ -1,23 +1,27 @@
 // Electron main process for the SAT Practice Tool.
-// Starts a tiny embedded HTTP server on a random local port and loads the
-// existing browser-based viewer in a BrowserWindow. The viewer code is
-// unchanged from the web version.
+//
+// Earlier versions ran a tiny embedded HTTP server on a random local
+// port (server.listen(0, ...)) and pointed the BrowserWindow at it.
+// That broke localStorage persistence: a fresh port every launch meant
+// a fresh origin every launch, so progress, playlists, and saved
+// answers all got dropped on the floor when the user reopened the app.
+//
+// This version registers a custom `app://` protocol instead. Same
+// origin every launch (`app://localhost`), so the renderer's
+// localStorage points at the same bucket the user filled in their last
+// session. Also a bit faster — no HTTP loop to spin up.
 
-// If ELECTRON_RUN_AS_NODE is set in the environment, Electron behaves like
-// a plain Node — `require('electron')` returns a path string and the API is
-// unavailable. Bail clearly so the user knows.
 if (typeof require('electron') === 'string') {
-  console.error('Electron started in Node-only mode (ELECTRON_RUN_AS_NODE is set).');
-  console.error('Run "set ELECTRON_RUN_AS_NODE=" (cmd) or "$env:ELECTRON_RUN_AS_NODE=$null" (PowerShell) before launching, or use the npm script "npm run electron".');
+  console.error('Electron started in Node-only mode (ELECTRON_RUN_AS_NODE is set in env). Aborting.');
   process.exit(1);
 }
-const { app, BrowserWindow, shell, Menu } = require('electron');
-const http = require('node:http');
+
+const { app, BrowserWindow, shell, Menu, protocol } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-// In dev (`electron .`) the project files live next to this script.
-// In a packaged build, `extraResources` puts viewer/, data/,
+// In dev (`npm run electron`) the project files live next to this
+// script. In a packaged build, `extraResources` puts viewer/, data/,
 // desmos-offline-main/ under `process.resourcesPath`.
 const ROOT = app.isPackaged ? process.resourcesPath : __dirname;
 
@@ -36,49 +40,53 @@ const MIME = {
   '.woff2':'font/woff2',
 };
 
-let serverPort = 0;
+// Privilege the scheme BEFORE app is ready. Without `standard: true`,
+// relative URLs and fetch() in the page don't behave like they do over
+// http(s). Without `secure: true`, the page isn't a "secure context"
+// and localStorage gets restricted.
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: {
+    standard: true,
+    secure: true,
+    supportFetchAPI: true,
+    stream: true,
+    corsEnabled: true,
+  } },
+]);
 
-function startServer() {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer(async (req, res) => {
-      try {
-        let pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-        if (pathname === '/') {
-          res.writeHead(302, { Location: '/viewer/' });
-          res.end();
-          return;
-        }
-        const filePath = path.normalize(path.join(ROOT, pathname));
-        if (!filePath.startsWith(ROOT)) {
-          res.writeHead(403);
-          res.end('Forbidden');
-          return;
-        }
-        const stat = await fs.stat(filePath);
-        const real = stat.isDirectory() ? path.join(filePath, 'index.html') : filePath;
-        const buf = await fs.readFile(real);
-        res.writeHead(200, {
-          'Content-Type': MIME[path.extname(real).toLowerCase()] || 'application/octet-stream',
-          'Cache-Control': 'no-cache',
-        });
-        res.end(buf);
-      } catch (e) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('Not found: ' + req.url);
-      }
+async function handleAppRequest(req) {
+  try {
+    const u = new URL(req.url);
+    let pathname = decodeURIComponent(u.pathname);
+    if (pathname === '/' || pathname === '') pathname = '/viewer/';
+    let filePath = path.normalize(path.join(ROOT, pathname));
+
+    // Path traversal guard
+    if (!filePath.startsWith(ROOT)) {
+      return new Response('forbidden', { status: 403 });
+    }
+
+    let stat;
+    try { stat = await fs.stat(filePath); }
+    catch { return new Response('not found: ' + req.url, { status: 404 }); }
+
+    if (stat.isDirectory()) filePath = path.join(filePath, 'index.html');
+
+    const data = await fs.readFile(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    return new Response(data, {
+      headers: {
+        'Content-Type': MIME[ext] || 'application/octet-stream',
+        'Cache-Control': 'no-cache',
+      },
     });
-    server.listen(0, '127.0.0.1', () => {
-      serverPort = server.address().port;
-      resolve(serverPort);
-    });
-    server.on('error', reject);
-  });
+  } catch (err) {
+    return new Response('error: ' + String(err), { status: 500 });
+  }
 }
 
 async function createWindow() {
-  // Start server and create window in parallel so the Chromium init isn't
-  // gated on our HTTP server.
-  const portPromise = startServer();
+  protocol.handle('app', handleAppRequest);
 
   const win = new BrowserWindow({
     width: 1500,
@@ -98,24 +106,21 @@ async function createWindow() {
   });
   win.once('ready-to-show', () => win.show());
 
-  const port = await portPromise;
-
-  // Open external links (e.g. cdn.jsdelivr) in the user's default browser.
+  // Open external links (e.g. cdn.jsdelivr for MathJax fallbacks) in
+  // the user's default browser instead of inside the app window.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(`http://127.0.0.1:${port}`)) {
-      return { action: 'allow' };
-    }
+    if (url.startsWith('app://')) return { action: 'allow' };
     shell.openExternal(url);
     return { action: 'deny' };
   });
   win.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith(`http://127.0.0.1:${port}`)) {
+    if (!url.startsWith('app://')) {
       event.preventDefault();
       shell.openExternal(url);
     }
   });
 
-  win.loadURL(`http://127.0.0.1:${port}/`);
+  await win.loadURL('app://localhost/viewer/');
 }
 
 // Hide the default menu bar entirely (still toggleable with Alt).
