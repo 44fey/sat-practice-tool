@@ -1,166 +1,133 @@
 # SAT Practice Tool
 
-A local, no-login, fast-as-you-can-click study tool for the digital SAT.
+I was supposed to be studying for the SAT. I procrastinated and made this instead.
 
-I built this while procrastinating SAT prep. The official **College Board SAT Suite Question Bank** has every disclosed practice question — about 1,400 of them across Math and Reading & Writing — but the website is sluggish, the export-to-PDF is broken, and there is no progress tracking, no playlists, no built-in calculator, no way to bookmark items for review. So I made my own.
+The College Board has every disclosed practice question on their site —
+about 1,400 of them across Math and Reading & Writing — but the website
+is slow, the "Export to PDF" button is broken, you can't bookmark a
+question, you can't make a list of "ones I keep getting wrong," there's
+no calculator, no timer. Pretty hard to actually use it as a study tool.
 
-It runs entirely on your computer. Open it in any modern browser, pick a question, hit Submit, see how you did. Build playlists by skill or by hand. Bookmark stuff for review. Use the embedded Desmos. Switch between Math and R&W with one click. Everything you do (correct/wrong, marked-for-review, named playlists) is saved in `localStorage` so it persists between sessions.
-
-## What it does
-
-- **All disclosed (non-active) SAT items, locally**: 826 Math + 596 Reading & Writing, the same set you get when you check "Exclude Active Questions" on the official site.
-- **Bluebook-style UI**: matches the look of the actual digital SAT — dashed multi-color divider, choice cards with letter circles, "Mark for Review" bookmark, footer with **Back / Question N of M / Next**.
-- **Deferred grading**: pick an answer, *think*, then hit **Submit**. Only then does it reveal ✓/✗ and the correct one — no spoilers on click.
-- **Per-question stopwatch**: counts up while you work; locks green if you got it right, red if not.
-- **Progress tracking**: every attempt is saved with status (correct / wrong / unattempted). Status dots in the sidebar show your performance at a glance.
-- **Playlists**: build named study sets two ways:
-  - **+ Filter** — captures everything matching your current filter (e.g. "Algebra → Linear functions, Hard, Wrong") in one click
-  - **+ Pick** — multi-select mode: tick individual question rows and save them as a playlist
-  - Activate a playlist and it becomes the universe for Back / Next.
-- **Nested domain → skill filter**: each domain expands to show its skills, so you can drill into a specific weakness.
-- **Mark for review**: bookmark questions and filter to just those with one click on the gold star.
-- **Embedded Desmos calculator**: full graphing calculator in a draggable, resizable side panel. **Works offline** (uses a local copy of the calculator bundle).
-- **Math / R&W section toggle**: switch subjects with one click; progress and playlists are scoped per section.
-- **Hide-the-sidebar focus mode**: press `\` (or click the icon) to collapse the navigation and just look at the question.
-- **Keyboard shortcuts**: `←` / `→` to navigate, `\` to toggle the sidebar.
-
-## How it works
-
-The College Board Question Bank web app calls a couple of undocumented JSON
-APIs to power its own UI. This tool reuses them directly — no headless
-browser, no PDF parsing.
-
-1. `POST .../questionbank/digital/get-questions` returns the full list of
-   questions for a given test (Math = `test:2`, R&W = `test:1`) and domains.
-2. `GET .../questionbank/lookup` returns `mathLiveItems` and
-   `readingLiveItems` — the IDs currently appearing in active Bluebook
-   practice tests.
-
-Subtracting the active list from the full list gives the disclosed
-(non-active) set the official UI shows when you check "Exclude Active
-Questions": **826 Math** and **596 Reading & Writing** as of the time of
-scraping.
-
-For each disclosed question the scraper then fetches the full body using
-whichever endpoint the original site uses for that item:
-
-- **Modern questions** (`ibn` empty): `POST /digital/get-question` with
-  `{external_id}` → `{stem, stimulus, answerOptions, keys, rationale}`.
-  Stems are MathML-rich HTML (rendered via MathJax 3 in the browser).
-- **Legacy questions** (Math only, non-empty `ibn`): `GET https://saic.collegeboard.org/disclosed/{ibn}.json` → `{prompt, body, answer:{style, choices, rationale, correct_choice}}`.
-  These often carry rasterised math images (`<img src="data:image/png;base64,...">`).
-
-Each response is saved as a JSON file under `data/{section}/questions/<id>.json` together with the index metadata, so the viewer renders it from disk afterward.
+So I gave up studying and built my own version.
 
 ## Get it
 
-**Just want to use it?** Grab a Windows build from the
-[latest release](https://github.com/44fey/sat-practice-tool/releases/latest):
+Download the [latest installer](https://github.com/44fey/sat-practice-tool/releases/latest)
+(`SAT-Practice-Tool-Setup-x.y.z.exe`). Run it. There's also a portable
+single-file version for USB sticks — same thing, but the cold start
+takes ~30s every launch because it has to extract itself first.
 
-- **Recommended — `SAT-Practice-Tool-Setup-x.y.z.exe`** (NSIS installer,
-  ~107 MB). Installs once into your user profile, then launches in **~2
-  seconds**. Adds a Start menu / Desktop shortcut.
-- **`SAT-Practice-Tool-Portable-x.y.z.exe`** (portable, ~107 MB). Single
-  file you can run from a USB stick. Tradeoff: it has to extract its
-  contents to `%TEMP%` on every launch, so cold start takes **~30 seconds**.
+Both binaries are unsigned, so the first time you run one, Windows will
+pop up a SmartScreen warning ("Windows protected your PC"). Click
+**More info → Run anyway**.
 
-Both bundle all 1,422 disclosed SAT questions, the viewer, and the offline
-Desmos calculator. No Node.js install needed.
+## What's in it
 
-> **About the SmartScreen warning** — the binaries are unsigned, so Windows
-> will pop up "Windows protected your PC" the first time. Click **More info →
-> Run anyway**. Code-signing certificates start at ~$200/yr; building
-> SmartScreen reputation organically requires a fair number of users to run
-> the binary without flagging it. Until then, the manual override is the
-> route.
+- Every disclosed question, downloaded once. **826 Math + 596 R&W.**
+  No login, no internet needed afterwards.
+- Looks like the actual digital SAT. Same dashed multi-color divider,
+  same "Mark for Review" button, same choice cards. I matched it on
+  purpose — felt weird studying in a UI that didn't match the real test.
+- A **Submit** button. You pick an answer, *think for a second*, then
+  hit Submit. Only then does it tell you if you're right. The official
+  site doesn't do this, which I think is wild.
+- **Per-question stopwatch.** Tells me when I'm spending too long on
+  one item.
+- **Playlists.** Build them by filter (e.g. "Algebra → Linear functions
+  → Hard → Wrong") or by hand-picking questions one by one. Then drill
+  the playlist with Back / Next.
+- **Mark for review** on individual questions, plus a filter to pull up
+  just the marked ones.
+- **Embedded Desmos**, fully offline. Drag-resizable side panel.
+- Saves what I got right/wrong across sessions. Sidebar shows status
+  dots so I can see at a glance how I'm doing in each domain.
+- Math / R&W toggle in the sidebar. Progress and playlists are scoped
+  per section.
 
-## Setup (from source)
+## How it works
 
-You need Node.js 18+.
+The College Board site loads questions through a couple of undocumented
+JSON APIs. I poked around the network tab and found:
+
+- `POST .../questionbank/digital/get-questions` returns the full list
+  of items for a section.
+- `GET .../questionbank/lookup` returns `mathLiveItems` and
+  `readingLiveItems` — the questions currently in active Bluebook
+  practice tests.
+
+Subtract the active set from the full set and you get exactly the same
+826 + 596 = 1,422 questions the official "Exclude Active Questions"
+toggle shows. Then for each question I either hit
+`POST /digital/get-question` (modern, MathML-rich HTML) or
+`GET https://saic.collegeboard.org/disclosed/{ibn}.json` (older items,
+math is rasterised to PNGs). Each response is one JSON file under
+`data/{section}/questions/<id>.json`.
+
+The viewer is just plain HTML/CSS/JS, no framework. The desktop app is
+Electron — same viewer, just wrapped in a window.
+
+## Run from source
+
+Node 18+:
 
 ```bash
-git clone https://github.com/<you>/sat-practice-tool
+git clone https://github.com/44fey/sat-practice-tool
 cd sat-practice-tool
 npm install
-npm run scrape      # downloads all 1,422 questions (~2 minutes, ~23 MB on disk)
-npm run serve       # http://localhost:5173
+npm run electron     # opens the desktop app
+# or
+npm run serve        # serves at http://localhost:5173 if you'd rather use a browser
 ```
 
-To re-scrape only one section: `node scrape.mjs math` or `node scrape.mjs reading`.
+The repo already has the data and the Desmos bundle in it, so you can
+run immediately. To refresh against any new College Board updates:
+`npm run scrape`.
 
-The `data/` and `desmos-offline-main/` folders are committed in this repo
-so you can clone and go without a scrape if you just want to look at it
-quickly. To get a fresh copy after College Board updates the bank, run
-`npm run scrape` again — existing files are skipped.
-
-## Layout
-
-```
-viewer/             HTML + CSS + JS for the local web app (no build step)
-data/
-  math/             826 disclosed Math questions
-    index.json      list metadata
-    questions/      one JSON per question
-  reading/          596 disclosed R&W questions
-desmos-offline-main/  Desmos graphing calculator, served locally
-scrape.mjs          scraper / refresher
-serve.mjs           tiny static server (port 5173)
-verify.mjs          loads every question in headless Chromium and audits rendering
-smoke.mjs           quick smoke test of the viewer
-tests/              one-off Playwright scripts used during development
-electron-main.cjs   Electron main process (used for the portable .exe build)
-run-electron.cjs    dev launcher for `npm run electron`
-run-electron-builder.cjs   wrapper for `npm run build:exe`
-CREDITS.md          attribution for College Board content + Desmos calculator
-```
-
-## Building the portable Windows .exe yourself
+## Build the .exe yourself
 
 ```bash
 npm install
-npm run electron     # dev mode — opens the app in its own window
-npm run build:exe    # produces dist/SAT-Practice-Tool.exe (~97 MB)
+npm run icon         # regenerate the icon (only if you change build/make-icon.cjs)
+npm run build:exe    # produces dist/SAT-Practice-Tool-Setup-*.exe and -Portable-*.exe
 ```
 
-Bundles the viewer, all 1,422 questions, and the offline Desmos calculator
-into a single portable executable. No code-signing — the build skips
-winCodeSign so you don't need Windows Developer Mode or admin rights.
+## Project layout
 
-## Verification
+```
+viewer/             # HTML + CSS + JS for the actual app
+data/               # the scraped questions
+  math/             # 826 Math
+  reading/          # 596 R&W
+desmos-offline-main/   # Desmos calculator, runs locally
+electron-main.cjs   # Electron main process (used for the .exe)
+scrape.mjs          # the scraper
+serve.mjs           # tiny static server for browser dev
+verify.mjs          # opens every question in headless Chromium and audits it
+build/              # icon source + build hooks
+tests/              # one-off scripts I wrote during development
+```
 
-Every question is rendered in headless Chromium and checked for: broken
-images, missing source content, console errors, failed network requests,
-choice-count mismatches, and SPR-mode regressions. The verifier runs
-across all 1,422 in about a minute and a half.
+## Verifier
+
+Because this thing renders MathML, SVG, base64 PNGs, and ~1,400 different
+question shapes, I wrote a verifier that loads every question in headless
+Chromium and checks for: broken images, missing source content, console
+errors, choice-count mismatches, etc. Runs in about 90 seconds across all
+1,422 items.
 
 ```bash
-npm run smoke       # 5 representative + 10 random
-node verify.mjs     # full sweep, writes verify-out/report.json
+node verify.mjs
 ```
 
-## Notes
+## Credits
 
-- I am a student, not a lawyer. This tool only calls public endpoints the
-  official educator-facing College Board site already calls from a
-  logged-out browser. Use it for personal study.
-- **Active Bluebook items are intentionally not fetched** — they're the
-  ones you'd see in actual practice tests anyway.
-- Question content in `data/` is © **The College Board**. See
-  [CREDITS.md](CREDITS.md) for full attribution.
-- The Desmos bundle in `desmos-offline-main/` is © **Desmos Inc.** and is
-  redistributed via the public
-  [desmos-offline](https://github.com/coolfreshmint/desmos-offline) project.
-- This was a procrastination project. Use at your own risk.
-
-## Contributing
-
-PRs welcome. Things on my list:
-- Spaced-repetition mode (re-surface wrong-answered items after N days)
-- Export a playlist as PDF for offline paper practice
-- A "review session" view that shows only your wrong answers + rationales
-- Auto-pull weekly to catch new disclosed items
+I wrote the viewer, scraper, and packaging. Question content is
+© The College Board, and the embedded calculator is © Desmos, Inc. —
+not mine. Details in [CREDITS.md](CREDITS.md).
 
 ## License
 
-MIT for the code. See [LICENSE](LICENSE). Question content and the Desmos
-bundle are not under the MIT license — see [CREDITS.md](CREDITS.md).
+MIT for the code I wrote. The bundled questions and Desmos calculator
+have their own licensing — see [LICENSE](LICENSE) and [CREDITS.md](CREDITS.md).
+
+— Faisal Al-Naamani ([@44fey](https://github.com/44fey))

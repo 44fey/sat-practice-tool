@@ -1,53 +1,58 @@
-# Credits & Attribution
+# Credits
 
-This project bundles two things I did not create. Full credit and
-acknowledgment goes to:
+Two big things in this repo aren't mine, and I want to be clear about
+where they came from.
 
-## SAT Question Content
+## The SAT questions
 
-All question stems, stimuli, answer choices, rationales, and associated
-images in the `data/` directory are © **The College Board**.
+Everything inside `data/` — 826 Math + 596 R&W questions, including the
+stems, choices, rationales, embedded math images, and SVG figures — is
+copyright **The College Board**.
 
-- They are sourced from the publicly-accessible **SAT Suite Question Bank**
-  for educators: <https://satsuiteeducatorquestionbank.collegeboard.org/>
-- "SAT", "Bluebook", "Digital SAT", and the College Board name and logo
-  are trademarks owned by the College Board.
-- This project is **not** affiliated with, endorsed by, or sponsored by
-  the College Board.
-- Only **disclosed (non-active)** items are included — i.e. questions the
-  College Board has explicitly released for educator and student review.
-  Active Bluebook practice-test items are intentionally excluded.
-- The content is included in this repo to make the tool runnable
-  out-of-the-box for personal study. If you are the rights holder and
-  would prefer it not be redistributed here, open an issue and I will
-  remove it; you can always re-fetch your own copy via `npm run scrape`.
+I downloaded them from the public
+[SAT Suite Educator Question Bank](https://satsuiteeducatorquestionbank.collegeboard.org/),
+which is open to anyone with a free account. The scraper just sends the
+same JSON requests their own JavaScript sends. Only the **disclosed
+(non-active)** items are included — the ones the College Board has
+already released for review. The questions still being used in active
+Bluebook practice tests are intentionally not in here.
 
-## Desmos Graphing Calculator
+I'm not affiliated with the College Board. "SAT," "Bluebook," "Digital
+SAT," and the College Board name and logo are their trademarks. If
+anyone from the College Board would prefer the questions not be in this
+repo, open an issue and I'll take them down — anyone using the tool can
+re-fetch their own copy with `npm run scrape`.
 
-The contents of `desmos-offline-main/` are © **Desmos, Inc.** Desmos provides a
-free educational graphing calculator at <https://www.desmos.com/calculator>
-and a free embeddable JavaScript API at <https://www.desmos.com/api>.
+## The Desmos calculator
 
-- The offline bundle in this repo originates from the
-  [desmos-offline](https://github.com/coolfreshmint/desmos-offline) project,
-  which packages the calculator into a self-contained folder that runs
-  without an internet connection.
-- "Desmos" and the Desmos logo are trademarks owned by Desmos, Inc.
-- This project is **not** affiliated with, endorsed by, or sponsored by
-  Desmos.
+Everything inside `desmos-offline-main/` is © **Desmos, Inc.** That's
+their actual graphing calculator, running locally inside the app.
 
-## Other libraries
+Desmos publishes a free embedding API at
+[desmos.com/api](https://www.desmos.com/api), but the standard version
+needs internet. The offline build I'm shipping comes from the
+[desmos-offline](https://github.com/coolfreshmint/desmos-offline)
+project, which packages the calculator into a self-contained folder
+that runs without a connection.
 
-- [MathJax 3](https://www.mathjax.org/) — used to render MathML in
-  question stems. Loaded from `cdn.jsdelivr.net` via `<script>` tag in
-  [viewer/index.html](viewer/index.html). Apache 2.0 licensed.
-- [Playwright](https://playwright.dev/) — used in `tests/` and in
-  [verify.mjs](verify.mjs) for headless rendering checks. Apache 2.0
-  licensed. Dev dependency only.
+I'm not affiliated with Desmos either.
+
+## Other libraries I used
+
+- [MathJax 3](https://www.mathjax.org/) — renders the MathML in modern
+  question stems. Loaded from a CDN. Apache 2.0.
+- [Playwright](https://playwright.dev/) — headless Chromium for the
+  verifier and the Playwright-based test scripts. Dev-only. Apache 2.0.
+- [Electron](https://www.electronjs.org/) — wraps the viewer into the
+  desktop app. MIT.
+- [electron-builder](https://www.electron.build/) — builds the .exe
+  installers. MIT.
 
 ## My code
 
-Everything outside `data/`, `desmos-offline-main/`, and `node_modules/` —
-i.e. `viewer/`, `scrape.mjs`, `serve.mjs`, `smoke.mjs`, `verify.mjs`,
-`tests/`, and configuration files — is my own work, MIT-licensed (see
+Everything else — the viewer (HTML/CSS/JS in `viewer/`), the scraper,
+the Electron main process, the build hooks, the icon generator, the
+verifier, all the test scripts — I wrote myself. MIT licensed (see
 [LICENSE](LICENSE)).
+
+— Faisal Al-Naamani ([@44fey](https://github.com/44fey))
